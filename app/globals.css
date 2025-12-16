@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 9 9 11;
+  --foreground: 250 250 250;
 }
 
 @theme inline {
@@ -14,13 +18,137 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 9 9 11;
+    --foreground: 250 250 250;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: rgb(9 9 11);
+  color: rgb(250 250 250);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Animation utilities */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+/* Table row stagger animation */
+tbody tr {
+  animation: slide-up 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+tbody tr:nth-child(1) {
+  animation-delay: 0ms;
+}
+tbody tr:nth-child(2) {
+  animation-delay: 30ms;
+}
+tbody tr:nth-child(3) {
+  animation-delay: 60ms;
+}
+tbody tr:nth-child(4) {
+  animation-delay: 90ms;
+}
+tbody tr:nth-child(5) {
+  animation-delay: 120ms;
+}
+tbody tr:nth-child(6) {
+  animation-delay: 150ms;
+}
+tbody tr:nth-child(7) {
+  animation-delay: 180ms;
+}
+tbody tr:nth-child(8) {
+  animation-delay: 210ms;
+}
+tbody tr:nth-child(9) {
+  animation-delay: 240ms;
+}
+tbody tr:nth-child(10) {
+  animation-delay: 270ms;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #fff 0%, #71717a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect enhancement */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: none;
+}
+
+/* Select styling for dark theme */
+select option {
+  background-color: rgb(24 24 27);
+  color: rgb(212 212 216);
+  padding: 8px;
+}
+
+/* Date input styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
 }

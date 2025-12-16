@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  role          UserRole  @default(USER)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String   
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+
+enum Platform {
+  META
+  X
+  TIKTOK
+  LINKEDIN
+  TABOOLA
+  VIBE_CTV
+  WHOLESALE_CENTRAL
+}
+
+enum ObjectiveType {
+  REACH
+  LINK_CLICKS
+  VIDEO_VIEWS
+  WEBSITE_TRAFFIC
+  BRAND_AWARENESS
+  OUTCOME_AWARENESS
+}
+
+model Campaign {
+  id          String      @id @default(cuid())
+  name        String
+  platform    Platform
+  objective   ObjectiveType?
+  startDate   DateTime?
+  endDate     DateTime?
+  totalBudget Decimal?    @db.Decimal(12, 2)
+  dailyBudget Decimal?    @db.Decimal(12, 2)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  adSets      AdSet[]
+  metrics     CampaignMetric[]
+
+  @@index([platform])
+  @@index([startDate, endDate])
+}
+
+model AdSet {
+  id          String    @id @default(cuid())
+  name        String
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  ads         Ad[]
+  metrics     AdSetMetric[]
+
+  @@index([campaignId])
+}
+
+model Ad {
+  id        String   @id @default(cuid())
+  name      String
+  adSetId   String
+  adSet     AdSet    @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  metrics   AdMetric[]
+
+  @@index([adSetId])
+}
+
+// Daily/periodic metrics at campaign level
+model CampaignMetric {
+  id              String   @id @default(cuid())
+  campaignId      String
+  campaign        Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  reportDate      DateTime
+  region          String?  // State/Country
+  
+  // Core metrics
+  reach           Int?
+  impressions     Int
+  clicks          Int?
+  spend           Decimal  @db.Decimal(12, 2)
+  
+  // Calculated rates (stored for query efficiency)
+  ctr             Decimal? @db.Decimal(8, 6)
+  cpm             Decimal? @db.Decimal(10, 4)
+  cpc             Decimal? @db.Decimal(10, 4)
+  
+  // Video metrics
+  videoViews      Int?
+  videoViewRate   Decimal? @db.Decimal(8, 6)
+  videoCompletions Int?
+  
+  // Conversion metrics
+  results         Int?
+  resultType      String?
+  costPerResult   Decimal? @db.Decimal(10, 4)
+  
+  // E-commerce metrics
+  purchases       Int?
+  purchaseValue   Decimal? @db.Decimal(12, 2)
+  roas            Decimal? @db.Decimal(10, 4)
+  addToCart       Int?
+  checkouts       Int?
+  
+  // CTV-specific (Vibe)
+  households      Int?
+  viewThroughRate Decimal? @db.Decimal(8, 6)
+  completedViews  Int?
+  sessions        Int?
+  pageViews       Int?
+  leads           Int?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([campaignId, reportDate, region])
+  @@index([campaignId])
+  @@index([reportDate])
+  @@index([region])
+}
+
+model AdSetMetric {
+  id              String   @id @default(cuid())
+  adSetId         String
+  adSet           AdSet    @relation(fields: [adSetId], references: [id], onDelete: Cascade)
+  
+  reportDate      DateTime
+  region          String?
+  
+  reach           Int?
+  impressions     Int
+  clicks          Int?
+  spend           Decimal  @db.Decimal(12, 2)
+  ctr             Decimal? @db.Decimal(8, 6)
+  cpm             Decimal? @db.Decimal(10, 4)
+  cpc             Decimal? @db.Decimal(10, 4)
+  
+  results         Int?
+  resultType      String?
+  costPerResult   Decimal? @db.Decimal(10, 4)
+  
+  purchases       Int?
+  purchaseValue   Decimal? @db.Decimal(12, 2)
+  roas            Decimal? @db.Decimal(10, 4)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([adSetId, reportDate, region])
+  @@index([adSetId])
+  @@index([reportDate])
+}
+
+model AdMetric {
+  id              String   @id @default(cuid())
+  adId            String
+  ad              Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  
+  reportDate      DateTime
+  region          String?
+  
+  reach           Int?
+  impressions     Int
+  clicks          Int?
+  spend           Decimal  @db.Decimal(12, 2)
+  ctr             Decimal? @db.Decimal(8, 6)
+  cpm             Decimal? @db.Decimal(10, 4)
+  cpc             Decimal? @db.Decimal(10, 4)
+  
+  results         Int?
+  costPerResult   Decimal? @db.Decimal(10, 4)
+  
+  purchases       Int?
+  purchaseValue   Decimal? @db.Decimal(12, 2)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([adId, reportDate, region])
+  @@index([adId])
+  @@index([reportDate])
+}
+
+// Aggregated monthly summary for quick dashboard queries
+model MonthlySummary {
+  id              String   @id @default(cuid())
+  platform        Platform
+  month           DateTime // First day of month
+  
+  totalSpend      Decimal  @db.Decimal(14, 2)
+  totalImpressions BigInt
+  totalClicks     BigInt?
+  totalReach      BigInt?
+  
+  avgCtr          Decimal? @db.Decimal(8, 6)
+  avgCpm          Decimal? @db.Decimal(10, 4)
+  avgCpc          Decimal? @db.Decimal(10, 4)
+  
+  totalVideoViews BigInt?
+  totalPurchases  Int?
+  totalRevenue    Decimal? @db.Decimal(14, 2)
+  avgRoas         Decimal? @db.Decimal(10, 4)
+  
+  campaignCount   Int
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([platform, month])
+  @@index([month])
+  @@index([platform])
+}
