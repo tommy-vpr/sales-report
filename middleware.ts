@@ -46,9 +46,15 @@ export default withAuth(
   }
 );
 
+// export const config = {
+//   matcher: [
+//     // Match all paths except static files and _next
+//     "/((?!_next/static|_next/image|favicon.ico|public/).*)",
+//   ],
+// };
 export const config = {
   matcher: [
-    // Match all paths except static files and _next
-    "/((?!_next/static|_next/image|favicon.ico|public/).*)",
+    // Exclude static and image files from middleware
+    "/((?!_next/static|_next/image|favicon.ico|images/).*)",
   ],
 };

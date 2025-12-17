@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LITTO - Sales Report",
+  title: "LITTO - Analytics",
   description: "Monthly sales reporting",
   icons: {
     icon: "/images/favicon.png", // 32x32 or 48x48

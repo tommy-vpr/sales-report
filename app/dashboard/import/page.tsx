@@ -51,8 +51,8 @@ function GlassCard({
     <div
       className={`
         relative overflow-hidden rounded-2xl 
-        bg-white/[0.03] backdrop-blur-xl
-        border border-white/[0.08]
+        bg-white/3 backdrop-blur-xl
+        border border-white/8
         shadow-[0_8px_32px_rgba(0,0,0,0.3)]
         ${className}
       `}
@@ -77,9 +77,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3 mb-6">
-      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${iconBg}`}>
-        {icon}
-      </div>
+      <div className={`p-2.5 rounded-xl bg-linear-to-br ${iconBg}`}>{icon}</div>
       <div>
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
@@ -111,10 +109,7 @@ function ImportHistory() {
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="h-16 bg-white/[0.03] rounded-xl animate-pulse"
-          />
+          <div key={i} className="h-16 bg-white/3 rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -142,7 +137,7 @@ function ImportHistory() {
         </p>
         <button
           onClick={() => refetch()}
-          className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+          className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
         >
           <RefreshCw size={16} />
         </button>
@@ -153,8 +148,8 @@ function ImportHistory() {
           key={`${period.year}-${period.month}`}
           className="
             flex items-center justify-between p-4 rounded-xl
-            bg-white/[0.02] border border-white/[0.05]
-            hover:bg-white/[0.04] transition-colors
+            bg-white/2 border border-white/5
+            hover:bg-white/4 transition-colors
           "
         >
           <div className="flex items-center gap-4">
@@ -183,7 +178,7 @@ function ImportHistory() {
 
       {/* Totals */}
       {periodsData?.totals && (
-        <div className="mt-6 pt-4 border-t border-white/[0.06]">
+        <div className="mt-6 pt-4 border-t border-white/6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-zinc-400">Total</span>
             <div className="text-right">
@@ -347,7 +342,7 @@ function ImportForm() {
                   ? "border-blue-500 bg-blue-500/10"
                   : file
                   ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-white/[0.1] hover:border-white/[0.2] hover:bg-white/[0.02]"
+                  : "border-white/1 hover:border-white/2 hover:bg-white/2"
               }
             `}
           >
@@ -378,7 +373,7 @@ function ImportForm() {
                   className="
                     inline-flex items-center gap-2 px-4 py-2 rounded-lg
                     text-sm text-zinc-400 hover:text-white
-                    hover:bg-white/[0.05] transition-colors
+                    hover:bg-white/5 transition-colors
                   "
                 >
                   <Trash2 size={14} />
@@ -387,7 +382,7 @@ function ImportForm() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4">
-                <div className="p-4 rounded-xl bg-white/[0.05]">
+                <div className="p-4 rounded-xl bg-white/5">
                   <Upload className="text-zinc-400" size={32} />
                 </div>
                 <div>
@@ -409,7 +404,7 @@ function ImportForm() {
                 type="checkbox"
                 checked={autoDetect}
                 onChange={(e) => setAutoDetect(e.target.checked)}
-                className="w-4 h-4 rounded border-white/20 bg-white/[0.05] text-blue-500 focus:ring-blue-500/50"
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500/50"
               />
               <span className="text-sm text-zinc-300">
                 Auto-detect period from filename (e.g., "LITTO - April '25")
@@ -417,7 +412,7 @@ function ImportForm() {
             </label>
 
             {!autoDetect && (
-              <div className="flex gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+              <div className="flex gap-4 p-4 rounded-xl bg-white/2 border border-white/5">
                 <div className="flex-1 space-y-2">
                   <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">
                     Month
@@ -427,7 +422,7 @@ function ImportForm() {
                     onChange={(e) => setMonth(parseInt(e.target.value))}
                     className="
                       w-full px-3 py-2.5 rounded-lg
-                      bg-white/[0.05] border border-white/[0.1]
+                      bg-white/5 border border-white/1
                       text-white text-sm
                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
                     "
@@ -452,7 +447,7 @@ function ImportForm() {
                     onChange={(e) => setYear(parseInt(e.target.value))}
                     className="
                       w-full px-3 py-2.5 rounded-lg
-                      bg-white/[0.05] border border-white/[0.1]
+                      bg-white/5 border border-white/1
                       text-white text-sm
                       focus:outline-none focus:ring-2 focus:ring-blue-500/50
                     "
@@ -474,7 +469,7 @@ function ImportForm() {
             disabled={!file || isPending}
             className="
               w-full px-6 py-3.5 rounded-xl
-              bg-gradient-to-r from-blue-600 to-blue-500
+              bg-linear-to-r from-blue-600 to-blue-500
               hover:from-blue-500 hover:to-blue-400
               text-white font-semibold
               transition-all duration-200
@@ -499,19 +494,19 @@ function ImportForm() {
       )}
 
       {/* Format Help */}
-      <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+      <div className="p-4 rounded-xl bg-white/2 border border-white/5">
         <p className="text-xs font-medium text-zinc-400 mb-3">
           Expected CSV format:
         </p>
         <div className="space-y-2">
-          <code className="block text-xs text-zinc-500 font-mono bg-white/[0.03] p-2 rounded-lg overflow-x-auto">
+          <code className="block text-xs text-zinc-500 font-mono bg-white/3 p-2 rounded-lg overflow-x-auto">
             LITTO - April '25
           </code>
-          <code className="block text-xs text-zinc-500 font-mono bg-white/[0.03] p-2 rounded-lg overflow-x-auto">
+          <code className="block text-xs text-zinc-500 font-mono bg-white/3 p-2 rounded-lg overflow-x-auto">
             Platform, Impressions, Clicks, CTR %, Video Views, Video View Rate,
             Cost
           </code>
-          <code className="block text-xs text-zinc-500 font-mono bg-white/[0.03] p-2 rounded-lg overflow-x-auto">
+          <code className="block text-xs text-zinc-500 font-mono bg-white/3 p-2 rounded-lg overflow-x-auto">
             Meta Ads, 85452, 3428, 5.38%, -, -, $618.92
           </code>
         </div>

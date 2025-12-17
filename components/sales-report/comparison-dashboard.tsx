@@ -32,6 +32,8 @@ import {
   BarChart3,
   GitCompare,
   Loader2,
+  ShoppingCart,
+  Percent,
 } from "lucide-react";
 
 // ============ PLATFORM COLORS ============
@@ -72,6 +74,10 @@ function formatNumber(value: number): string {
 
 function formatPercent(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
+}
+
+function formatRoas(value: number): string {
+  return `${value.toFixed(2)}x`;
 }
 
 function formatChange(value: number | null): string {
@@ -166,7 +172,7 @@ function MonthSelector({
             onChange={(e) => onYearChange(parseInt(e.target.value))}
             className="
               appearance-none px-4 py-2.5 pr-10 rounded-xl
-              bg-white/5 border border-white/L1
+              bg-white/5border border-white/1
               text-white font-medium text-sm
               cursor-pointer transition-all
               hover:bg-white/8
@@ -190,7 +196,7 @@ function MonthSelector({
             onChange={(e) => onMonthChange(parseInt(e.target.value))}
             className="
               appearance-none px-4 py-2.5 pr-10 rounded-xl
-              bg-white/5 border border-white/1
+              bg-white/5border border-white/1
               text-white font-medium text-sm
               cursor-pointer transition-all
               hover:bg-white/8
@@ -246,7 +252,7 @@ function ComparisonMetricCard({
         <span className="text-sm font-medium text-zinc-400 uppercase tracking-wide">
           {title}
         </span>
-        <div className="p-2 rounded-xl bg-white/5 text-zinc-400">{icon}</div>
+        <div className="p-2 rounded-xl bg-white/5text-zinc-400">{icon}</div>
       </div>
 
       <div className="flex items-center gap-3 mb-3">
@@ -356,19 +362,19 @@ function PlatformComparisonTable({ data }: { data: PlatformComparison[] }) {
               className="px-4 py-3 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider"
               colSpan={2}
             >
-              Impressions
+              Revenue
             </th>
             <th
               className="px-4 py-3 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider"
               colSpan={2}
             >
-              Clicks
+              ROAS
             </th>
             <th
               className="px-4 py-3 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider"
               colSpan={2}
             >
-              CTR
+              Purchases
             </th>
           </tr>
           <tr className="border-b border-white/4">
@@ -421,35 +427,35 @@ function PlatformComparisonTable({ data }: { data: PlatformComparison[] }) {
                   </div>
                   <ChangeIndicator value={platform.changes.spend} />
                 </td>
-                {/* Impressions */}
+                {/* Revenue */}
                 <td className="px-4 py-3 text-right text-sm text-zinc-400">
-                  {formatNumber(platform.period1.impressions)}
+                  {formatCurrency(platform.period1.revenue)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="text-sm text-white">
-                    {formatNumber(platform.period2.impressions)}
+                    {formatCurrency(platform.period2.revenue)}
                   </div>
-                  <ChangeIndicator value={platform.changes.impressions} />
+                  <ChangeIndicator value={platform.changes.revenue} />
                 </td>
-                {/* Clicks */}
+                {/* ROAS */}
                 <td className="px-4 py-3 text-right text-sm text-zinc-400">
-                  {formatNumber(platform.period1.clicks)}
+                  {formatRoas(platform.period1.roas)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="text-sm text-white">
-                    {formatNumber(platform.period2.clicks)}
+                    {formatRoas(platform.period2.roas)}
                   </div>
-                  <ChangeIndicator value={platform.changes.clicks} />
+                  <ChangeIndicator value={platform.changes.roas} />
                 </td>
-                {/* CTR */}
+                {/* Purchases */}
                 <td className="px-4 py-3 text-right text-sm text-zinc-400">
-                  {formatPercent(platform.period1.ctr)}
+                  {formatNumber(platform.period1.purchases)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="text-sm text-white">
-                    {formatPercent(platform.period2.ctr)}
+                    {formatNumber(platform.period2.purchases)}
                   </div>
-                  <ChangeIndicator value={platform.changes.ctr} />
+                  <ChangeIndicator value={platform.changes.purchases} />
                 </td>
               </tr>
             );
@@ -511,158 +517,168 @@ export function ComparisonDashboard() {
   const isLoading = periodsLoading || comparisonLoading;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-blue-600/10 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-emerald-600/10 via-transparent to-transparent rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <header className="mb-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-500/20 to-emerald-500/20">
-              <GitCompare className="text-blue-400" size={24} />
-            </div>
-            <h1 className="text-3xl font-bold">Period Comparison</h1>
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Header */}
+      <header className="mb-10">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-500/20 to-emerald-500/20">
+            <GitCompare className="text-blue-400" size={24} />
           </div>
-          <p className="text-zinc-500">
-            Compare performance between two months
-          </p>
-        </header>
+          <h1 className="text-3xl font-bold text-white">Period Comparison</h1>
+        </div>
+        <p className="text-zinc-500">Compare performance between two months</p>
+      </header>
 
-        {/* Period Selectors */}
-        <GlassCard className="p-6 mb-8">
-          <div className="flex flex-wrap items-end gap-8">
-            <MonthSelector
-              label="Period 1 (Baseline)"
-              year={month1.year}
-              month={month1.month}
-              onYearChange={(year) => setMonth1({ ...month1, year })}
-              onMonthChange={(month) => setMonth1({ ...month1, month })}
-              availableYears={availableYears}
-              availableMonths={availableMonthsForYear(month1.year)}
-              color="#3b82f6"
+      {/* Period Selectors */}
+      <GlassCard className="p-6 mb-8">
+        <div className="flex flex-wrap items-end gap-8">
+          <MonthSelector
+            label="Period 1 (Baseline)"
+            year={month1.year}
+            month={month1.month}
+            onYearChange={(year) => setMonth1({ ...month1, year })}
+            onMonthChange={(month) => setMonth1({ ...month1, month })}
+            availableYears={availableYears}
+            availableMonths={availableMonthsForYear(month1.year)}
+            color="#3b82f6"
+          />
+
+          <div className="flex items-center pb-2">
+            <ArrowRight className="text-zinc-600" size={24} />
+          </div>
+
+          <MonthSelector
+            label="Period 2 (Compare)"
+            year={month2.year}
+            month={month2.month}
+            onYearChange={(year) => setMonth2({ ...month2, year })}
+            onMonthChange={(month) => setMonth2({ ...month2, month })}
+            availableYears={availableYears}
+            availableMonths={availableMonthsForYear(month2.year)}
+            color="#10b981"
+          />
+
+          {comparison && (
+            <div className="ml-auto text-right">
+              <p className="text-sm text-zinc-400">Comparing</p>
+              <p className="text-lg font-semibold text-white">
+                {comparison.period1.label} → {comparison.period2.label}
+              </p>
+            </div>
+          )}
+        </div>
+      </GlassCard>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="animate-spin text-zinc-400" size={40} />
+        </div>
+      ) : comparison ? (
+        <>
+          {/* Summary Cards - Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+            <ComparisonMetricCard
+              title="Total Spend"
+              period1Value={formatCurrency(
+                comparison.period1.totals.totalSpend
+              )}
+              period2Value={formatCurrency(
+                comparison.period2.totals.totalSpend
+              )}
+              change={comparison.changes.totalSpend}
+              icon={<DollarSign size={18} />}
             />
-
-            <div className="flex items-center pb-2">
-              <ArrowRight className="text-zinc-600" size={24} />
-            </div>
-
-            <MonthSelector
-              label="Period 2 (Compare)"
-              year={month2.year}
-              month={month2.month}
-              onYearChange={(year) => setMonth2({ ...month2, year })}
-              onMonthChange={(month) => setMonth2({ ...month2, month })}
-              availableYears={availableYears}
-              availableMonths={availableMonthsForYear(month2.year)}
-              color="#10b981"
+            <ComparisonMetricCard
+              title="Total Revenue"
+              period1Value={formatCurrency(
+                comparison.period1.totals.totalRevenue
+              )}
+              period2Value={formatCurrency(
+                comparison.period2.totals.totalRevenue
+              )}
+              change={comparison.changes.totalRevenue}
+              icon={<TrendingUp size={18} />}
             />
-
-            {comparison && (
-              <div className="ml-auto text-right">
-                <p className="text-sm text-zinc-400">Comparing</p>
-                <p className="text-lg font-semibold text-white">
-                  {comparison.period1.label} → {comparison.period2.label}
-                </p>
-              </div>
-            )}
+            <ComparisonMetricCard
+              title="Avg ROAS"
+              period1Value={formatRoas(comparison.period1.totals.avgRoas)}
+              period2Value={formatRoas(comparison.period2.totals.avgRoas)}
+              change={comparison.changes.avgRoas}
+              icon={<Percent size={18} />}
+            />
           </div>
-        </GlassCard>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="animate-spin text-zinc-400" size={40} />
+          {/* Summary Cards - Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+            <ComparisonMetricCard
+              title="Purchases"
+              period1Value={formatNumber(
+                comparison.period1.totals.totalPurchases
+              )}
+              period2Value={formatNumber(
+                comparison.period2.totals.totalPurchases
+              )}
+              change={comparison.changes.totalPurchases}
+              icon={<ShoppingCart size={18} />}
+            />
+            <ComparisonMetricCard
+              title="Impressions"
+              period1Value={formatNumber(
+                comparison.period1.totals.totalImpressions
+              )}
+              period2Value={formatNumber(
+                comparison.period2.totals.totalImpressions
+              )}
+              change={comparison.changes.totalImpressions}
+              icon={<Eye size={18} />}
+            />
+            <ComparisonMetricCard
+              title="Avg CTR"
+              period1Value={formatPercent(comparison.period1.totals.avgCtr)}
+              period2Value={formatPercent(comparison.period2.totals.avgCtr)}
+              change={comparison.changes.avgCtr}
+              icon={<Target size={18} />}
+            />
           </div>
-        ) : comparison ? (
-          <>
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-              <ComparisonMetricCard
-                title="Total Spend"
-                period1Value={formatCurrency(
-                  comparison.period1.totals.totalSpend
-                )}
-                period2Value={formatCurrency(
-                  comparison.period2.totals.totalSpend
-                )}
-                change={comparison.changes.totalSpend}
-                icon={<DollarSign size={18} />}
-              />
-              <ComparisonMetricCard
-                title="Impressions"
-                period1Value={formatNumber(
-                  comparison.period1.totals.totalImpressions
-                )}
-                period2Value={formatNumber(
-                  comparison.period2.totals.totalImpressions
-                )}
-                change={comparison.changes.totalImpressions}
-                icon={<Eye size={18} />}
-              />
-              <ComparisonMetricCard
-                title="Clicks"
-                period1Value={formatNumber(
-                  comparison.period1.totals.totalClicks
-                )}
-                period2Value={formatNumber(
-                  comparison.period2.totals.totalClicks
-                )}
-                change={comparison.changes.totalClicks}
-                icon={<MousePointerClick size={18} />}
-              />
-              <ComparisonMetricCard
-                title="Avg CTR"
-                period1Value={formatPercent(comparison.period1.totals.avgCtr)}
-                period2Value={formatPercent(comparison.period2.totals.avgCtr)}
-                change={comparison.changes.avgCtr}
-                icon={<Target size={18} />}
-              />
-            </div>
 
-            {/* Chart */}
-            <GlassCard className="p-6 mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-500/20 to-purple-500/20">
-                  <BarChart3 className="text-blue-400" size={20} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Spend by Platform
-                  </h3>
-                  <p className="text-sm text-zinc-500">
-                    Side-by-side comparison
-                  </p>
-                </div>
+          {/* Chart */}
+          <GlassCard className="p-6 mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-xl bg-linear-to-br from-blue-500/20 to-purple-500/20">
+                <BarChart3 className="text-blue-400" size={20} />
               </div>
-              <PlatformComparisonChart data={comparison.platformComparison} />
-            </GlassCard>
-
-            {/* Detailed Table */}
-            <GlassCard className="overflow-hidden">
-              <div className="p-6 border-b border-white/6">
+              <div>
                 <h3 className="text-lg font-semibold text-white">
-                  Platform Details
+                  Spend by Platform
                 </h3>
-                <p className="text-sm text-zinc-500">
-                  Full breakdown with period-over-period changes
-                </p>
+                <p className="text-sm text-zinc-500">Side-by-side comparison</p>
               </div>
-              <PlatformComparisonTable data={comparison.platformComparison} />
-            </GlassCard>
-          </>
-        ) : (
-          <GlassCard className="p-12 text-center">
-            <GitCompare className="mx-auto text-zinc-600 mb-4" size={48} />
-            <p className="text-zinc-400">Select two periods to compare</p>
-            <p className="text-sm text-zinc-600 mt-2">
-              Import data first if no periods are available
-            </p>
+            </div>
+            <PlatformComparisonChart data={comparison.platformComparison} />
           </GlassCard>
-        )}
-      </div>
+
+          {/* Detailed Table */}
+          <GlassCard className="overflow-hidden">
+            <div className="p-6 border-b border-white/6">
+              <h3 className="text-lg font-semibold text-white">
+                Platform Details
+              </h3>
+              <p className="text-sm text-zinc-500">
+                Full breakdown with period-over-period changes
+              </p>
+            </div>
+            <PlatformComparisonTable data={comparison.platformComparison} />
+          </GlassCard>
+        </>
+      ) : (
+        <GlassCard className="p-12 text-center">
+          <GitCompare className="mx-auto text-zinc-600 mb-4" size={48} />
+          <p className="text-zinc-400">Select two periods to compare</p>
+          <p className="text-sm text-zinc-600 mt-2">
+            Import data first if no periods are available
+          </p>
+        </GlassCard>
+      )}
     </div>
   );
 }

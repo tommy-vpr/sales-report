@@ -63,13 +63,13 @@ function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="
           flex items-center gap-3 px-3 py-2 rounded-xl
-          bg-white/[0.05] border border-white/[0.08]
-          hover:bg-white/[0.08] hover:border-white/[0.12]
+          bg-white/5 border border-white/8
+          hover:bg-white/8 hover:border-white/12
           transition-all duration-200
         "
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
           <span className="text-xs font-semibold text-white">{initials}</span>
         </div>
 
@@ -98,12 +98,12 @@ function UserMenu() {
             className="
               rounded-xl overflow-hidden
               bg-zinc-900/95 backdrop-blur-xl
-              border border-white/[0.08]
+              border border-white/8
               shadow-[0_8px_32px_rgba(0,0,0,0.4)]
             "
           >
             {/* User Info */}
-            <div className="px-4 py-3 border-b border-white/[0.06]">
+            <div className="px-4 py-3 border-b border-white/6">
               <p className="text-sm font-medium text-white">
                 {session.user.name || "User"}
               </p>
@@ -120,7 +120,7 @@ function UserMenu() {
                 className="
                   flex items-center gap-3 px-3 py-2.5 rounded-lg
                   text-zinc-300 hover:text-white
-                  hover:bg-white/[0.05]
+                  hover:bg-white/5
                   transition-colors
                 "
               >
@@ -158,7 +158,7 @@ function MobileNav() {
     <div className="lg:hidden">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg hover:bg-white/[0.05] transition-colors"
+        className="p-2 rounded-lg hover:bg-white/5 transition-colors"
       >
         {isOpen ? (
           <X size={24} className="text-zinc-400" />
@@ -181,7 +181,7 @@ function MobileNav() {
               fixed top-16 left-4 right-4 z-50
               rounded-xl overflow-hidden
               bg-zinc-900/95 backdrop-blur-xl
-              border border-white/[0.08]
+              border border-white/8
               shadow-[0_8px_32px_rgba(0,0,0,0.4)]
             "
           >
@@ -199,7 +199,7 @@ function MobileNav() {
                       ${
                         isActive
                           ? "bg-blue-500/10 text-blue-400"
-                          : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                          : "text-zinc-400 hover:text-white hover:bg-white/5"
                       }
                     `}
                   >
@@ -226,7 +226,7 @@ export function Header() {
       className="
         sticky top-0 z-30
         bg-zinc-950/80 backdrop-blur-xl
-        border-b border-white/[0.06]
+        border-b border-white/6
       "
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -234,7 +234,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center gap-8">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 <BarChart3 size={18} className="text-white" />
               </div>
               <span className="text-lg font-bold text-white hidden sm:block">
@@ -255,8 +255,8 @@ export function Header() {
                       text-sm font-medium transition-colors
                       ${
                         isActive
-                          ? "bg-white/[0.08] text-white"
-                          : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                          ? "bg-white/8 text-white"
+                          : "text-zinc-400 hover:text-white hover:bg-white/5"
                       }
                     `}
                   >

@@ -28,10 +28,13 @@ export interface PlatformBreakdown {
   totalImpressions: number;
   totalClicks: number;
   totalVideoViews: number;
+  totalPurchases: number;
+  totalRevenue: number;
   campaignCount: number;
   avgCtr: number;
   avgCpm: number;
   avgCpc: number;
+  avgRoas: number;
   spendShare: number;
   months: {
     month: string;
@@ -39,6 +42,8 @@ export interface PlatformBreakdown {
     spend: number;
     impressions: number;
     clicks: number;
+    purchases: number;
+    revenue: number;
   }[];
 }
 
@@ -48,6 +53,8 @@ export interface MonthlyTrend {
   totalSpend: number;
   totalImpressions: number;
   totalClicks: number;
+  totalPurchases: number;
+  totalRevenue: number;
   platforms: string[];
 }
 
@@ -56,10 +63,13 @@ export interface MonthlySummaryTotals {
   totalImpressions: number;
   totalClicks: number;
   totalVideoViews: number;
+  totalPurchases: number;
+  totalRevenue: number;
   campaignCount: number;
   avgCtr: number;
   avgCpm: number;
   avgCpc: number;
+  avgRoas: number;
 }
 
 export interface MonthlySummaryResponse {

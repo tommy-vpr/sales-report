@@ -25,7 +25,7 @@ export function UserMenu() {
 
   // Loading state
   if (status === "loading") {
-    return <div className="w-8 h-8 rounded-lg bg-white/[0.05] animate-pulse" />;
+    return <div className="w-8 h-8 rounded-lg bg-white/5 animate-pulse" />;
   }
 
   // Not authenticated
@@ -61,13 +61,13 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="
           flex items-center gap-3 px-3 py-2 rounded-xl
-          bg-white/[0.05] border border-white/[0.08]
-          hover:bg-white/[0.08] hover:border-white/[0.12]
+          bg-white/5 border border-white/8
+          hover:bg-white/8 hover:border-white/12
           transition-all duration-200
         "
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
           <span className="text-xs font-semibold text-white">{initials}</span>
         </div>
 
@@ -103,14 +103,14 @@ export function UserMenu() {
               className="
                 rounded-xl overflow-hidden
                 bg-zinc-900/95 backdrop-blur-xl
-                border border-white/[0.08]
+                border border-white/8
                 shadow-[0_8px_32px_rgba(0,0,0,0.4)]
               "
             >
               {/* User Info Header */}
-              <div className="px-4 py-3 border-b border-white/[0.06]">
+              <div className="px-4 py-3 border-b border-white/6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <span className="text-sm font-semibold text-white">
                       {initials}
                     </span>
@@ -134,7 +134,7 @@ export function UserMenu() {
                   className="
                     flex items-center gap-3 px-3 py-2.5 rounded-lg
                     text-zinc-300 hover:text-white
-                    hover:bg-white/[0.05]
+                    hover:bg-white/5
                     transition-colors
                   "
                 >
@@ -148,7 +148,7 @@ export function UserMenu() {
                   className="
                     flex items-center gap-3 px-3 py-2.5 rounded-lg
                     text-zinc-300 hover:text-white
-                    hover:bg-white/[0.05]
+                    hover:bg-white/5
                     transition-colors
                   "
                 >
@@ -156,7 +156,7 @@ export function UserMenu() {
                   <span className="text-sm">Settings</span>
                 </Link>
 
-                <div className="my-2 border-t border-white/[0.06]" />
+                <div className="my-2 border-t border-white/6" />
 
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}

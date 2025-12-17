@@ -50,6 +50,8 @@ export async function GET(request: NextRequest) {
           totalImpressions: acc.totalImpressions + Number(s.totalImpressions),
           totalClicks: acc.totalClicks + Number(s.totalClicks || 0),
           totalVideoViews: acc.totalVideoViews + Number(s.totalVideoViews || 0),
+          totalPurchases: acc.totalPurchases + Number(s.totalPurchases || 0),
+          totalRevenue: acc.totalRevenue + Number(s.totalRevenue || 0),
           campaignCount: acc.campaignCount + Number(s.campaignCount),
         }),
         {
@@ -57,6 +59,8 @@ export async function GET(request: NextRequest) {
           totalImpressions: 0,
           totalClicks: 0,
           totalVideoViews: 0,
+          totalPurchases: 0,
+          totalRevenue: 0,
           campaignCount: 0,
         }
       );
@@ -73,6 +77,8 @@ export async function GET(request: NextRequest) {
             : 0,
         avgCpc:
           totals.totalClicks > 0 ? totals.totalSpend / totals.totalClicks : 0,
+        avgRoas:
+          totals.totalSpend > 0 ? totals.totalRevenue / totals.totalSpend : 0,
       };
     };
 
@@ -101,9 +107,18 @@ export async function GET(request: NextRequest) {
         period2Totals.totalClicks,
         period1Totals.totalClicks
       ),
+      totalPurchases: calculateChange(
+        period2Totals.totalPurchases,
+        period1Totals.totalPurchases
+      ),
+      totalRevenue: calculateChange(
+        period2Totals.totalRevenue,
+        period1Totals.totalRevenue
+      ),
       avgCtr: calculateChange(period2Totals.avgCtr, period1Totals.avgCtr),
       avgCpm: calculateChange(period2Totals.avgCpm, period1Totals.avgCpm),
       avgCpc: calculateChange(period2Totals.avgCpc, period1Totals.avgCpc),
+      avgRoas: calculateChange(period2Totals.avgRoas, period1Totals.avgRoas),
     };
 
     // Platform comparison
@@ -124,6 +139,12 @@ export async function GET(request: NextRequest) {
       const p2Clicks = Number(p2?.totalClicks || 0);
       const p1Ctr = Number(p1?.avgCtr || 0);
       const p2Ctr = Number(p2?.avgCtr || 0);
+      const p1Purchases = Number(p1?.totalPurchases || 0);
+      const p2Purchases = Number(p2?.totalPurchases || 0);
+      const p1Revenue = Number(p1?.totalRevenue || 0);
+      const p2Revenue = Number(p2?.totalRevenue || 0);
+      const p1Roas = Number(p1?.avgRoas || 0);
+      const p2Roas = Number(p2?.avgRoas || 0);
 
       return {
         platform,
@@ -133,6 +154,9 @@ export async function GET(request: NextRequest) {
           clicks: p1Clicks,
           ctr: p1Ctr,
           cpm: p1Impressions > 0 ? (p1Spend / p1Impressions) * 1000 : 0,
+          purchases: p1Purchases,
+          revenue: p1Revenue,
+          roas: p1Roas,
         },
         period2: {
           spend: p2Spend,
@@ -140,12 +164,18 @@ export async function GET(request: NextRequest) {
           clicks: p2Clicks,
           ctr: p2Ctr,
           cpm: p2Impressions > 0 ? (p2Spend / p2Impressions) * 1000 : 0,
+          purchases: p2Purchases,
+          revenue: p2Revenue,
+          roas: p2Roas,
         },
         changes: {
           spend: calculateChange(p2Spend, p1Spend),
           impressions: calculateChange(p2Impressions, p1Impressions),
           clicks: calculateChange(p2Clicks, p1Clicks),
           ctr: calculateChange(p2Ctr, p1Ctr),
+          purchases: calculateChange(p2Purchases, p1Purchases),
+          revenue: calculateChange(p2Revenue, p1Revenue),
+          roas: calculateChange(p2Roas, p1Roas),
         },
       };
     });

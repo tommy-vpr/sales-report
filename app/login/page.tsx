@@ -5,6 +5,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Lock, Mail, AlertCircle } from "lucide-react";
+import { DottedGlowBackgroundDemo } from "@/components/ui/DottedGlowBG-Demo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,10 +49,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
       {/* Background gradient mesh */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-blue-600/20 via-transparent to-transparent rounded-full blur-3xl" />
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-purple-600/20 via-transparent to-transparent rounded-full blur-3xl" />
-      </div>
+      </div> */}
 
       <div className="relative z-10 w-full max-w-md">
         {/* Logo / Brand */}
@@ -59,16 +60,16 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             LITTO Analytics
           </h1>
-          <p className="text-zinc-500 mt-2">Sign in to your account</p>
         </div>
 
         {/* Login Card */}
         <div
           className="
-            relative overflow-hidden rounded-2xl 
-            bg-white/3 backdrop-blur-xl
-            border border-white/3
-            shadow-[0_8px_32px_rgba(0,0,0,0.3)]
+            relative overflow-hidden rounded-2xl
+            bg-white/5 backdrop-blur-2xl
+            
+            border border-white/10
+            shadow-[0_20px_50px_rgba(0,0,0,0.45)]
             p-8
           "
         >
@@ -153,7 +154,7 @@ export default function LoginPage() {
                 transition-all duration-200
                 disabled:opacity-50 disabled:cursor-not-allowed
                 flex items-center justify-center gap-2
-                shadow-lg shadow-blue-500/25
+                shadow-lg shadow-blue-500/25 cursor-pointer
               "
             >
               {isLoading ? (
@@ -175,6 +176,8 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <DottedGlowBackgroundDemo />
     </div>
   );
 }

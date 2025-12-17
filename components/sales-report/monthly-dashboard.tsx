@@ -35,6 +35,9 @@ import {
   PieChart as PieChartIcon,
   Zap,
   Users,
+  ShoppingCart,
+  Percent,
+  Target,
 } from "lucide-react";
 
 // ============ PLATFORM COLORS ============
@@ -77,6 +80,10 @@ function formatPercent(value: number): string {
   return `${(value * 100).toFixed(2)}%`;
 }
 
+function formatRoas(value: number): string {
+  return `${value.toFixed(2)}x`;
+}
+
 // ============ GLASS CARD ============
 
 function GlassCard({
@@ -90,11 +97,11 @@ function GlassCard({
     <div
       className={`
         relative overflow-hidden rounded-2xl 
-        bg-white/[0.03] backdrop-blur-xl
-        border border-white/[0.08]
+        bg-white/3 backdrop-blur-xl
+        border border-white/8
         shadow-[0_8px_32px_rgba(0,0,0,0.3)]
         transition-all duration-300
-        hover:bg-white/[0.05] hover:border-white/[0.12]
+        hover:bg-white/5 hover:border-white/12
         ${className}
       `}
     >
@@ -128,17 +135,17 @@ function MetricCard({
       />
       <div className="relative">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-medium text-zinc-400 tracking-wide uppercase">
+          <span className="text-xs md:text-sm font-medium text-zinc-400 tracking-wide uppercase">
             {title}
           </span>
           <div
-            className="p-2 rounded-xl bg-white/[0.05]"
+            className="p-2 rounded-xl bg-white/5"
             style={{ color: accentColor }}
           >
             {icon}
           </div>
         </div>
-        <p className="text-4xl font-bold text-white tracking-tight mb-1">
+        <p className="text-2xl md:text-4xl font-bold text-white tracking-tight mb-1">
           {value}
         </p>
         {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
@@ -162,9 +169,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3 mb-6">
-      <div className={`p-2.5 rounded-xl bg-gradient-to-br ${iconBg}`}>
-        {icon}
-      </div>
+      <div className={`p-2.5 rounded-xl bg-linear-to-br ${iconBg}`}>{icon}</div>
       <div>
         <h3 className="text-lg font-semibold text-white">{title}</h3>
         {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
@@ -175,12 +180,31 @@ function SectionHeader({
 
 // ============ CUSTOM TOOLTIP ============
 
-function CustomTooltip({ active, payload, label, formatter }: any) {
+interface TooltipPayloadEntry {
+  color: string;
+  name: string;
+  value: number;
+  payload?: Record<string, unknown>;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+  formatter?: (value: number) => string;
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  formatter,
+}: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-zinc-900/95 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 shadow-xl">
       <p className="text-xs text-zinc-400 mb-2">{label}</p>
-      {payload.map((entry: any, index: number) => (
+      {payload.map((entry, index) => (
         <div key={index} className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full"
@@ -213,6 +237,7 @@ function SpendTrendChart({ data }: { data: MonthlyTrend[] }) {
       year: "2-digit",
     }),
     spend: d.totalSpend,
+    revenue: d.totalRevenue,
     impressions: d.totalImpressions,
     clicks: d.totalClicks,
   }));
@@ -228,6 +253,10 @@ function SpendTrendChart({ data }: { data: MonthlyTrend[] }) {
             <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.4} />
               <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -251,6 +280,11 @@ function SpendTrendChart({ data }: { data: MonthlyTrend[] }) {
             width={60}
           />
           <Tooltip content={<CustomTooltip formatter={formatCurrency} />} />
+          <Legend
+            formatter={(value) => (
+              <span className="text-zinc-400 text-sm">{value}</span>
+            )}
+          />
           <Area
             type="monotone"
             dataKey="spend"
@@ -258,13 +292,16 @@ function SpendTrendChart({ data }: { data: MonthlyTrend[] }) {
             stroke="#3b82f6"
             strokeWidth={2}
             fill="url(#spendGradient)"
-            dot={{ r: 4, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
-            activeDot={{
-              r: 6,
-              fill: "#3b82f6",
-              stroke: "#fff",
-              strokeWidth: 2,
-            }}
+            dot={{ r: 3, fill: "#3b82f6", stroke: "#fff", strokeWidth: 1 }}
+          />
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            name="Revenue"
+            stroke="#10b981"
+            strokeWidth={2}
+            fill="url(#revenueGradient)"
+            dot={{ r: 3, fill: "#10b981", stroke: "#fff", strokeWidth: 1 }}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -313,7 +350,10 @@ function PlatformPieChart({ data }: { data: PlatformBreakdown[] }) {
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
-              const item = payload[0].payload;
+              const item = payload[0].payload as {
+                name: string;
+                value: number;
+              };
               const percent = ((item.value / total) * 100).toFixed(1);
               return (
                 <div className="bg-zinc-900/95 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 shadow-xl">
@@ -353,7 +393,7 @@ function PlatformBarChart({ data }: { data: PlatformBreakdown[] }) {
   const chartData = data.map((p) => ({
     name: platformDisplayNames[p.platform] || p.platform,
     spend: p.totalSpend,
-    impressions: p.totalImpressions / 1000, // Show in thousands
+    revenue: p.totalRevenue,
     fill: PLATFORM_COLORS[p.platform] || "#3b82f6",
   }));
 
@@ -386,6 +426,11 @@ function PlatformBarChart({ data }: { data: PlatformBreakdown[] }) {
             width={100}
           />
           <Tooltip content={<CustomTooltip formatter={formatCurrency} />} />
+          <Legend
+            formatter={(value) => (
+              <span className="text-zinc-400 text-sm">{value}</span>
+            )}
+          />
           <Bar dataKey="spend" name="Spend" radius={[0, 4, 4, 0]}>
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -420,19 +465,19 @@ function PlatformTable({ data }: { data: PlatformBreakdown[] }) {
               Spend
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Impressions
+              Revenue
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Clicks
+              ROAS
+            </th>
+            <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              Purchases
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               CTR
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               CPM
-            </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              CPC
             </th>
             <th className="px-6 py-4 text-right text-xs font-semibold text-zinc-400 uppercase tracking-wider">
               Share
@@ -462,11 +507,22 @@ function PlatformTable({ data }: { data: PlatformBreakdown[] }) {
                 <td className="px-6 py-4 text-right font-semibold text-white">
                   {formatCurrency(platform.totalSpend)}
                 </td>
-                <td className="px-6 py-4 text-right text-zinc-300">
-                  {formatNumber(platform.totalImpressions)}
+                <td className="px-6 py-4 text-right text-emerald-400 font-semibold">
+                  {formatCurrency(platform.totalRevenue)}
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <span
+                    className={
+                      platform.avgRoas >= 1
+                        ? "text-emerald-400"
+                        : "text-zinc-400"
+                    }
+                  >
+                    {formatRoas(platform.avgRoas)}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-right text-zinc-300">
-                  {formatNumber(platform.totalClicks)}
+                  {formatNumber(platform.totalPurchases)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span
@@ -481,9 +537,6 @@ function PlatformTable({ data }: { data: PlatformBreakdown[] }) {
                 </td>
                 <td className="px-6 py-4 text-right text-zinc-300">
                   {formatCurrency(platform.avgCpm)}
-                </td>
-                <td className="px-6 py-4 text-right text-zinc-300">
-                  {formatCurrency(platform.avgCpc)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -530,134 +583,157 @@ export function MonthlyDashboard() {
   const summaryData = data?.success ? data.data : null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Background gradient mesh */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-blue-600/10 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-linear-to-tl from-purple-600/10 via-transparent to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-emerald-600/5 rounded-full blur-3xl" />
-      </div>
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Monthly Summary</h1>
+          <p className="text-zinc-500 mt-1">
+            Aggregated performance by month and platform
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <PeriodFilter value={dateRange} onChange={setDateRange} />
+          </div>
+          <ImportButton />
+        </div>
+      </header>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-white to-zinc-400 bg-clip-text text-transparent">
-              Monthly Summary
-            </h1>
-            <p className="text-zinc-500 mt-1">
-              Aggregated performance by month and platform
+      {error && (
+        <GlassCard className="p-6 mb-8 border-rose-500/30">
+          <p className="text-rose-400">Failed to load dashboard data</p>
+        </GlassCard>
+      )}
+
+      {/* KPI Cards - Row 1: Spend & Revenue */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        {isLoading ? (
+          [...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="h-36 bg-white/3 rounded-2xl animate-pulse"
+            />
+          ))
+        ) : summaryData ? (
+          <>
+            <MetricCard
+              title="Total Spend"
+              value={formatCurrency(summaryData.totals.totalSpend)}
+              subtitle={`${summaryData.totals.campaignCount} campaigns`}
+              icon={<DollarSign size={20} />}
+              accentColor="#3b82f6"
+            />
+            <MetricCard
+              title="Total Revenue"
+              value={formatCurrency(summaryData.totals.totalRevenue)}
+              subtitle={`${summaryData.totals.totalPurchases} purchases`}
+              icon={<TrendingUp size={20} />}
+              accentColor="#10b981"
+            />
+            <MetricCard
+              title="Avg ROAS"
+              value={formatRoas(summaryData.totals.avgRoas)}
+              subtitle="Return on ad spend"
+              icon={<Percent size={20} />}
+              accentColor="#f59e0b"
+            />
+            <MetricCard
+              title="Purchases"
+              value={formatNumber(summaryData.totals.totalPurchases)}
+              subtitle={`${formatCurrency(summaryData.totals.avgCpc)} CPC`}
+              icon={<ShoppingCart size={20} />}
+              accentColor="#8b5cf6"
+            />
+          </>
+        ) : (
+          <GlassCard className="col-span-full p-8 text-center">
+            <p className="text-zinc-400">
+              No data available. Import a report to get started.
             </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <PeriodFilter value={dateRange} onChange={setDateRange} />
-            </div>
-            <ImportButton />
-          </div>
-        </header>
-
-        {error && (
-          <GlassCard className="p-6 mb-8 border-rose-500/30">
-            <p className="text-rose-400">Failed to load dashboard data</p>
           </GlassCard>
         )}
+      </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {isLoading ? (
-            [...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-36 bg-white/L3 rounded-2xl animate-pulse"
-              />
-            ))
-          ) : summaryData ? (
-            <>
-              <MetricCard
-                title="Total Spend"
-                value={formatCurrency(summaryData.totals.totalSpend)}
-                subtitle={`${summaryData.totals.campaignCount} campaigns`}
-                icon={<DollarSign size={20} />}
-                accentColor="#3b82f6"
-              />
-              <MetricCard
-                title="Impressions"
-                value={formatNumber(summaryData.totals.totalImpressions)}
-                subtitle={`${formatCurrency(summaryData.totals.avgCpm)} CPM`}
-                icon={<Eye size={20} />}
-                accentColor="#8b5cf6"
-              />
-              <MetricCard
-                title="Clicks"
-                value={formatNumber(summaryData.totals.totalClicks)}
-                subtitle={`${formatCurrency(summaryData.totals.avgCpc)} CPC`}
-                icon={<MousePointerClick size={20} />}
-                accentColor="#10b981"
-              />
-              <MetricCard
-                title="Avg CTR"
-                value={formatPercent(summaryData.totals.avgCtr)}
-                subtitle={`${summaryData.platformBreakdown.length} platforms`}
-                icon={<TrendingUp size={20} />}
-                accentColor="#f59e0b"
-              />
-            </>
-          ) : (
-            <GlassCard className="col-span-full p-8 text-center">
-              <p className="text-zinc-400">
-                No data available. Import a report to get started.
-              </p>
-            </GlassCard>
-          )}
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <GlassCard className="p-6">
-            <SectionHeader
-              icon={<Zap className="text-blue-400" size={20} />}
-              title="Spend Over Time"
-              subtitle="Monthly ad spend trend"
-            />
-            <SpendTrendChart data={summaryData?.monthlyTrend || []} />
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <SectionHeader
-              icon={<PieChartIcon className="text-purple-400" size={20} />}
-              title="Spend by Platform"
-              subtitle="Distribution across platforms"
-              iconBg="from-purple-500/20 to-pink-500/20"
-            />
-            <PlatformPieChart data={summaryData?.platformBreakdown || []} />
-          </GlassCard>
-        </div>
-
-        {/* Platform Bar Chart */}
-        <GlassCard className="p-6 mb-8">
-          <SectionHeader
-            icon={<BarChart3 className="text-emerald-400" size={20} />}
-            title="Platform Comparison"
-            subtitle="Spend by platform"
-            iconBg="from-emerald-500/20 to-teal-500/20"
+      {/* KPI Cards - Row 2: Engagement */}
+      {!isLoading && summaryData && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <MetricCard
+            title="Impressions"
+            value={formatNumber(summaryData.totals.totalImpressions)}
+            subtitle={`${formatCurrency(summaryData.totals.avgCpm)} CPM`}
+            icon={<Eye size={20} />}
+            accentColor="#06b6d4"
           />
-          <PlatformBarChart data={summaryData?.platformBreakdown || []} />
+          <MetricCard
+            title="Clicks"
+            value={formatNumber(summaryData.totals.totalClicks)}
+            subtitle={`${formatCurrency(summaryData.totals.avgCpc)} CPC`}
+            icon={<MousePointerClick size={20} />}
+            accentColor="#ec4899"
+          />
+          <MetricCard
+            title="Avg CTR"
+            value={formatPercent(summaryData.totals.avgCtr)}
+            subtitle={`${summaryData.platformBreakdown.length} platforms`}
+            icon={<Target size={20} />}
+            accentColor="#f97316"
+          />
+          <MetricCard
+            title="Video Views"
+            value={formatNumber(summaryData.totals.totalVideoViews)}
+            subtitle="Total video views"
+            icon={<Eye size={20} />}
+            accentColor="#a855f7"
+          />
+        </div>
+      )}
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <GlassCard className="p-6">
+          <SectionHeader
+            icon={<Zap className="text-blue-400" size={20} />}
+            title="Spend & Revenue Trend"
+            subtitle="Monthly performance over time"
+          />
+          <SpendTrendChart data={summaryData?.monthlyTrend || []} />
         </GlassCard>
 
-        {/* Platform Table */}
-        <GlassCard className="overflow-hidden">
-          <div className="p-6 border-b border-white/6">
-            <SectionHeader
-              icon={<Users className="text-amber-400" size={20} />}
-              title="Platform Performance"
-              subtitle="Detailed breakdown by platform"
-              iconBg="from-amber-500/20 to-orange-500/20"
-            />
-          </div>
-          <PlatformTable data={summaryData?.platformBreakdown || []} />
+        <GlassCard className="p-6">
+          <SectionHeader
+            icon={<PieChartIcon className="text-purple-400" size={20} />}
+            title="Spend by Platform"
+            subtitle="Distribution across platforms"
+            iconBg="from-purple-500/20 to-pink-500/20"
+          />
+          <PlatformPieChart data={summaryData?.platformBreakdown || []} />
         </GlassCard>
       </div>
+
+      {/* Platform Bar Chart */}
+      <GlassCard className="p-6 mb-8">
+        <SectionHeader
+          icon={<BarChart3 className="text-emerald-400" size={20} />}
+          title="Platform Comparison"
+          subtitle="Spend by platform"
+          iconBg="from-emerald-500/20 to-teal-500/20"
+        />
+        <PlatformBarChart data={summaryData?.platformBreakdown || []} />
+      </GlassCard>
+
+      {/* Platform Table */}
+      <GlassCard className="overflow-hidden">
+        <div className="p-6 border-b border-white/6">
+          <SectionHeader
+            icon={<Users className="text-amber-400" size={20} />}
+            title="Platform Performance"
+            subtitle="Detailed breakdown by platform"
+            iconBg="from-amber-500/20 to-orange-500/20"
+          />
+        </div>
+        <PlatformTable data={summaryData?.platformBreakdown || []} />
+      </GlassCard>
     </div>
   );
 }

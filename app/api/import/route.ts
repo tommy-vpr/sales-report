@@ -22,7 +22,7 @@ const platformMap: Record<string, Platform> = {
 
 // Parse number from string (handles $, %, commas, dashes)
 function parseNumber(value: string | undefined | null): number | null {
-  if (!value || value === "-" || value === "") return null;
+  if (!value || value === "-" || value === "" || value === "0") return null;
   const cleaned = String(value)
     .replace(/[$,%\s"]/g, "")
     .replace(/,/g, "");
@@ -31,7 +31,10 @@ function parseNumber(value: string | undefined | null): number | null {
 }
 
 // Parse CSV content
-function parseCSV(content: string): Record<string, string>[] {
+function parseCSV(content: string): {
+  rows: Record<string, string>[];
+  headers: string[];
+} {
   const lines = content.split(/\r?\n/).filter((line) => line.trim());
 
   // Find header row (contains "Platform" and "Impressions")
@@ -80,7 +83,7 @@ function parseCSV(content: string): Record<string, string>[] {
     }
   }
 
-  return rows;
+  return { rows, headers };
 }
 
 // Extract month/year from filename or first row
@@ -159,8 +162,25 @@ interface PlatformTotals {
   campaignCount: number;
   ctrSum: number;
   ctrCount: number;
+  cpmSum: number;
+  cpmCount: number;
+  cpcSum: number;
+  cpcCount: number;
   roasSum: number;
   roasCount: number;
+}
+
+// Helper to get value from row with multiple possible column names
+function getRowValue(
+  row: Record<string, string>,
+  ...keys: string[]
+): string | null {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== "") {
+      return row[key];
+    }
+  }
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -175,7 +195,9 @@ export async function POST(request: NextRequest) {
     }
 
     const content = await file.text();
-    const rows = parseCSV(content);
+    const { rows, headers } = parseCSV(content);
+
+    console.log("CSV Headers:", headers);
 
     if (rows.length === 0) {
       return NextResponse.json(
@@ -193,7 +215,7 @@ export async function POST(request: NextRequest) {
     }
 
     const reportDate = new Date(period.year, period.month - 1, 1);
-    const monthStart = new Date(period.year, period.month - 1, 1); // First day of month
+    const monthStart = new Date(period.year, period.month - 1, 1);
 
     let created = 0;
     let updated = 0;
@@ -205,12 +227,20 @@ export async function POST(request: NextRequest) {
       const platform = platformMap[row["Platform"]];
       if (!platform) continue;
 
+      // Parse all fields with flexible column name matching
       const impressions = parseNumber(row["Impressions"]);
-      const clicks = parseNumber(row["Clicks"]);
+      const clicks = parseNumber(getRowValue(row, "Link Clicks", "Clicks"));
       const spend = parseNumber(row["Cost"]) ?? 0;
-      const ctr = parseNumber(row["CTR %"]);
+      const ctr = parseNumber(getRowValue(row, "CTR %", "CTR"));
+      const cpc = parseNumber(getRowValue(row, "CPC (cost per click)", "CPC"));
+      const cpm = parseNumber(
+        getRowValue(row, "CPM (cost per 1000 views)", "CPM")
+      );
       const videoViews = parseNumber(row["Video Views"]);
       const videoViewRate = parseNumber(row["Video View Rate"]);
+      const purchases = parseNumber(row["Purchases"]);
+      const roas = parseNumber(getRowValue(row, "ROAS %", "ROAS"));
+      const purchaseValue = parseNumber(row["Purchase Value"]);
 
       if (!impressions) continue;
 
@@ -243,15 +273,34 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // Calculate derived values if not provided
+      const calculatedCpm =
+        cpm ?? (impressions > 0 ? (spend / impressions) * 1000 : null);
+      const calculatedCpc =
+        cpc ?? (clicks && clicks > 0 ? spend / clicks : null);
+      const calculatedCtr = ctr
+        ? ctr / 100
+        : clicks && impressions > 0
+        ? clicks / impressions
+        : null;
+      const calculatedRoas = roas
+        ? roas / 100
+        : purchaseValue && spend > 0
+        ? purchaseValue / spend
+        : null;
+
       const metricData = {
         impressions,
         clicks,
         spend,
-        ctr: ctr ? ctr / 100 : null,
+        ctr: calculatedCtr,
+        cpm: calculatedCpm,
+        cpc: calculatedCpc,
         videoViews,
         videoViewRate: videoViewRate ? videoViewRate / 100 : null,
-        cpm: impressions > 0 ? (spend / impressions) * 1000 : null,
-        cpc: clicks && clicks > 0 ? spend / clicks : null,
+        purchases,
+        purchaseValue,
+        roas: calculatedRoas,
       };
 
       if (existingMetric) {
@@ -285,6 +334,10 @@ export async function POST(request: NextRequest) {
           campaignCount: 0,
           ctrSum: 0,
           ctrCount: 0,
+          cpmSum: 0,
+          cpmCount: 0,
+          cpcSum: 0,
+          cpcCount: 0,
           roasSum: 0,
           roasCount: 0,
         });
@@ -295,11 +348,25 @@ export async function POST(request: NextRequest) {
       totals.totalImpressions += impressions;
       totals.totalClicks += clicks ?? 0;
       totals.totalVideoViews += videoViews ?? 0;
+      totals.totalPurchases += purchases ?? 0;
+      totals.totalRevenue += purchaseValue ?? 0;
       totals.campaignCount += 1;
 
-      if (ctr) {
-        totals.ctrSum += ctr / 100;
+      if (calculatedCtr) {
+        totals.ctrSum += calculatedCtr;
         totals.ctrCount += 1;
+      }
+      if (calculatedCpm) {
+        totals.cpmSum += calculatedCpm;
+        totals.cpmCount += 1;
+      }
+      if (calculatedCpc) {
+        totals.cpcSum += calculatedCpc;
+        totals.cpcCount += 1;
+      }
+      if (calculatedRoas) {
+        totals.roasSum += calculatedRoas;
+        totals.roasCount += 1;
       }
     }
 
@@ -310,13 +377,23 @@ export async function POST(request: NextRequest) {
       const avgCtr =
         totals.ctrCount > 0 ? totals.ctrSum / totals.ctrCount : null;
       const avgCpm =
-        totals.totalImpressions > 0
+        totals.cpmCount > 0
+          ? totals.cpmSum / totals.cpmCount
+          : totals.totalImpressions > 0
           ? (totals.totalSpend / totals.totalImpressions) * 1000
           : null;
       const avgCpc =
-        totals.totalClicks > 0 ? totals.totalSpend / totals.totalClicks : null;
+        totals.cpcCount > 0
+          ? totals.cpcSum / totals.cpcCount
+          : totals.totalClicks > 0
+          ? totals.totalSpend / totals.totalClicks
+          : null;
       const avgRoas =
-        totals.roasCount > 0 ? totals.roasSum / totals.roasCount : null;
+        totals.roasCount > 0
+          ? totals.roasSum / totals.roasCount
+          : totals.totalRevenue > 0 && totals.totalSpend > 0
+          ? totals.totalRevenue / totals.totalSpend
+          : null;
 
       // Check if summary exists
       const existingSummary = await prisma.monthlySummary.findFirst({
@@ -326,43 +403,32 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      const summaryData = {
+        totalSpend: totals.totalSpend,
+        totalImpressions: totals.totalImpressions,
+        totalClicks: totals.totalClicks || null,
+        totalReach: totals.totalReach || null,
+        avgCtr,
+        avgCpm,
+        avgCpc,
+        totalVideoViews: totals.totalVideoViews || null,
+        totalPurchases: totals.totalPurchases || null,
+        totalRevenue: totals.totalRevenue || null,
+        avgRoas,
+        campaignCount: totals.campaignCount,
+      };
+
       if (existingSummary) {
-        // Update existing summary
         await prisma.monthlySummary.update({
           where: { id: existingSummary.id },
-          data: {
-            totalSpend: totals.totalSpend,
-            totalImpressions: totals.totalImpressions,
-            totalClicks: totals.totalClicks || null,
-            totalReach: totals.totalReach || null,
-            avgCtr,
-            avgCpm,
-            avgCpc,
-            totalVideoViews: totals.totalVideoViews || null,
-            totalPurchases: totals.totalPurchases || null,
-            totalRevenue: totals.totalRevenue || null,
-            avgRoas,
-            campaignCount: totals.campaignCount,
-          },
+          data: summaryData,
         });
       } else {
-        // Create new summary
         await prisma.monthlySummary.create({
           data: {
             platform,
             month: monthStart,
-            totalSpend: totals.totalSpend,
-            totalImpressions: totals.totalImpressions,
-            totalClicks: totals.totalClicks || null,
-            totalReach: totals.totalReach || null,
-            avgCtr,
-            avgCpm,
-            avgCpc,
-            totalVideoViews: totals.totalVideoViews || null,
-            totalPurchases: totals.totalPurchases || null,
-            totalRevenue: totals.totalRevenue || null,
-            avgRoas,
-            campaignCount: totals.campaignCount,
+            ...summaryData,
           },
         });
       }

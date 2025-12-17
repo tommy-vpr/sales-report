@@ -8,10 +8,13 @@ export interface PeriodTotals {
   totalImpressions: number;
   totalClicks: number;
   totalVideoViews: number;
+  totalPurchases: number;
+  totalRevenue: number;
   campaignCount: number;
   avgCtr: number;
   avgCpm: number;
   avgCpc: number;
+  avgRoas: number;
 }
 
 export interface PeriodData {
@@ -27,6 +30,9 @@ export interface PlatformPeriodData {
   clicks: number;
   ctr: number;
   cpm: number;
+  purchases: number;
+  revenue: number;
+  roas: number;
 }
 
 export interface PlatformComparison {
@@ -38,6 +44,9 @@ export interface PlatformComparison {
     impressions: number | null;
     clicks: number | null;
     ctr: number | null;
+    purchases: number | null;
+    revenue: number | null;
+    roas: number | null;
   };
 }
 
@@ -45,9 +54,12 @@ export interface ComparisonChanges {
   totalSpend: number | null;
   totalImpressions: number | null;
   totalClicks: number | null;
+  totalPurchases: number | null;
+  totalRevenue: number | null;
   avgCtr: number | null;
   avgCpm: number | null;
   avgCpc: number | null;
+  avgRoas: number | null;
 }
 
 export interface ComparisonResponse {

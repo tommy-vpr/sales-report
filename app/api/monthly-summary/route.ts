@@ -9,6 +9,8 @@ interface PlatformAccumulator {
   totalImpressions: number;
   totalClicks: number;
   totalVideoViews: number;
+  totalPurchases: number;
+  totalRevenue: number;
   campaignCount: number;
   months: {
     month: Date;
@@ -16,6 +18,8 @@ interface PlatformAccumulator {
     spend: number;
     impressions: number;
     clicks: number;
+    purchases: number;
+    revenue: number;
   }[];
 }
 
@@ -26,6 +30,8 @@ interface MonthAccumulator {
   totalSpend: number;
   totalImpressions: number;
   totalClicks: number;
+  totalPurchases: number;
+  totalRevenue: number;
   platforms: string[];
 }
 
@@ -103,6 +109,8 @@ export async function GET(request: NextRequest) {
         totalImpressions: acc.totalImpressions + s.totalImpressions,
         totalClicks: acc.totalClicks + s.totalClicks,
         totalVideoViews: acc.totalVideoViews + s.totalVideoViews,
+        totalPurchases: acc.totalPurchases + s.totalPurchases,
+        totalRevenue: acc.totalRevenue + s.totalRevenue,
         campaignCount: acc.campaignCount + s.campaignCount,
       }),
       {
@@ -110,6 +118,8 @@ export async function GET(request: NextRequest) {
         totalImpressions: 0,
         totalClicks: 0,
         totalVideoViews: 0,
+        totalPurchases: 0,
+        totalRevenue: 0,
         campaignCount: 0,
       }
     );
@@ -125,6 +135,8 @@ export async function GET(request: NextRequest) {
         : 0;
     const avgCpc =
       totals.totalClicks > 0 ? totals.totalSpend / totals.totalClicks : 0;
+    const avgRoas =
+      totals.totalSpend > 0 ? totals.totalRevenue / totals.totalSpend : 0;
 
     // Group by platform for breakdown
     const byPlatform = data.reduce<Record<string, PlatformAccumulator>>(
@@ -136,6 +148,8 @@ export async function GET(request: NextRequest) {
             totalImpressions: 0,
             totalClicks: 0,
             totalVideoViews: 0,
+            totalPurchases: 0,
+            totalRevenue: 0,
             campaignCount: 0,
             months: [],
           };
@@ -144,6 +158,8 @@ export async function GET(request: NextRequest) {
         acc[s.platform].totalImpressions += s.totalImpressions;
         acc[s.platform].totalClicks += s.totalClicks;
         acc[s.platform].totalVideoViews += s.totalVideoViews;
+        acc[s.platform].totalPurchases += s.totalPurchases;
+        acc[s.platform].totalRevenue += s.totalRevenue;
         acc[s.platform].campaignCount += s.campaignCount;
         acc[s.platform].months.push({
           month: s.month,
@@ -151,6 +167,8 @@ export async function GET(request: NextRequest) {
           spend: s.totalSpend,
           impressions: s.totalImpressions,
           clicks: s.totalClicks,
+          purchases: s.totalPurchases,
+          revenue: s.totalRevenue,
         });
         return acc;
       },
@@ -158,12 +176,13 @@ export async function GET(request: NextRequest) {
     );
 
     // Convert to array and add calculated fields
-    const platformBreakdown = Object.values(byPlatform).map((p: any) => ({
+    const platformBreakdown = Object.values(byPlatform).map((p) => ({
       ...p,
       avgCtr: p.totalImpressions > 0 ? p.totalClicks / p.totalImpressions : 0,
       avgCpm:
         p.totalImpressions > 0 ? (p.totalSpend / p.totalImpressions) * 1000 : 0,
       avgCpc: p.totalClicks > 0 ? p.totalSpend / p.totalClicks : 0,
+      avgRoas: p.totalSpend > 0 ? p.totalRevenue / p.totalSpend : 0,
       spendShare:
         totals.totalSpend > 0 ? (p.totalSpend / totals.totalSpend) * 100 : 0,
     }));
@@ -178,19 +197,22 @@ export async function GET(request: NextRequest) {
           totalSpend: 0,
           totalImpressions: 0,
           totalClicks: 0,
+          totalPurchases: 0,
+          totalRevenue: 0,
           platforms: [],
         };
       }
       acc[key].totalSpend += s.totalSpend;
       acc[key].totalImpressions += s.totalImpressions;
       acc[key].totalClicks += s.totalClicks;
+      acc[key].totalPurchases += s.totalPurchases;
+      acc[key].totalRevenue += s.totalRevenue;
       acc[key].platforms.push(s.platform);
       return acc;
     }, {});
 
     const monthlyTrend = Object.values(byMonth).sort(
-      (a: any, b: any) =>
-        new Date(a.month).getTime() - new Date(b.month).getTime()
+      (a, b) => new Date(a.month).getTime() - new Date(b.month).getTime()
     );
 
     return NextResponse.json({
@@ -202,9 +224,10 @@ export async function GET(request: NextRequest) {
           avgCtr,
           avgCpm,
           avgCpc,
+          avgRoas,
         },
         platformBreakdown: platformBreakdown.sort(
-          (a: any, b: any) => b.totalSpend - a.totalSpend
+          (a, b) => b.totalSpend - a.totalSpend
         ),
         monthlyTrend,
       },
