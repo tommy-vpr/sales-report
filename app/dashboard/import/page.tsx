@@ -104,6 +104,7 @@ function formatNumber(value: number): string {
 
 function ImportHistory() {
   const { data: periodsData, isLoading, refetch } = useReportPeriods();
+  const periods = periodsData?.periods || [];
 
   if (isLoading) {
     return (
@@ -114,8 +115,6 @@ function ImportHistory() {
       </div>
     );
   }
-
-  const periods = periodsData?.periods || [];
 
   if (periods.length === 0) {
     return (

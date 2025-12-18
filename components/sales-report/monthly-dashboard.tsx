@@ -582,6 +582,8 @@ export function MonthlyDashboard() {
   const { data, isLoading, error } = useMonthlySummary(filters);
   const summaryData = data?.success ? data.data : null;
 
+  console.log("Repo, Service, Action: ", data);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
