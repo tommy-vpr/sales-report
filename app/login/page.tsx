@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Lock, Mail, AlertCircle } from "lucide-react";
 import { DottedGlowBackgroundDemo } from "@/components/ui/DottedGlowBG-Demo";
+import WorldMapBG from "@/components/ui/WorldMapBG";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       {/* Background gradient mesh */}
       {/* <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-linear-to-br from-blue-600/20 via-transparent to-transparent rounded-full blur-3xl" />
@@ -99,7 +100,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@cultivatedagency.com"
+                  placeholder="admin@example.com"
                   required
                   className="
                     w-full pl-12 pr-4 py-3.5 rounded-xl
@@ -177,7 +178,8 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <DottedGlowBackgroundDemo />
+      {/* <DottedGlowBackgroundDemo /> */}
+      <WorldMapBG />
     </div>
   );
 }

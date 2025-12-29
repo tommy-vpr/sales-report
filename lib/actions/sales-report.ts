@@ -12,7 +12,7 @@ import {
   GetReportInputSchema,
   DateRangeSchema,
 } from "@/lib/schemas/sales-report";
-import { salesReportService } from "@/services/sales-report.service";
+import { salesReportService } from "../services/sales-report.service";
 
 // ============ DASHBOARD ============
 
